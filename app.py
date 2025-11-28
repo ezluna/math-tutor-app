@@ -286,7 +286,7 @@ elif send_button and not st.session_state.current_subject:
 st.markdown("---")
 st.markdown("""
 <div style='text-align: center; color: #666; font-size: 14px;'>
-    💝 Fait avec amour pour t'aider à réussir en math! 💝<br>
-    N'hésite pas à poser autant de questions que tu veux - il n'y a pas de questions bêtes! 🌟
+    💝 Fait avec amour pour t'aider en math! 💝<br>
+    N'hésite pas à poser autant de questions que tu veux: il n'y a pas de mauvaises questions! 🌟
 </div>
 """, unsafe_allow_html=True)
