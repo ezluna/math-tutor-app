@@ -69,22 +69,34 @@ if 'messages' not in st.session_state:
 if 'current_subject' not in st.session_state:
     st.session_state.current_subject = None
 if 'api_key' not in st.session_state:
-    st.session_state.api_key = None
+    # Essaie d'abord de charger depuis les secrets Streamlit
+    try:
+        st.session_state.api_key = st.secrets["OPENAI_API_KEY"]
+    except:
+        st.session_state.api_key = None
 
 # Sidebar - Configuration
 with st.sidebar:
     st.title("⚙️ Configuration")
     
-    # API Key
-    api_key = st.text_input(
-        "Clé API OpenAI",
-        type="password",
-        value=st.session_state.api_key or "",
-        help="Entre ta clé API OpenAI"
-    )
-    if api_key:
-        st.session_state.api_key = api_key
-        openai.api_key = api_key
+    # API Key - affiche seulement si pas dans les secrets
+    if st.session_state.api_key:
+        st.success("✅ Clé API configurée!")
+        if st.button("🔄 Changer la clé API"):
+            st.session_state.api_key = None
+            st.rerun()
+    else:
+        api_key = st.text_input(
+            "Clé API OpenAI",
+            type="password",
+            help="Entre ta clé API OpenAI"
+        )
+        if api_key:
+            st.session_state.api_key = api_key
+    
+    # Configure OpenAI
+    if st.session_state.api_key:
+        openai.api_key = st.session_state.api_key
     
     st.divider()
     
