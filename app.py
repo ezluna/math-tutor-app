@@ -188,8 +188,8 @@ Rappel: Tu aides des élèves du Pensionnat Saint-Nom-de-Marie à Montréal, don
         return f"❌ Erreur: {str(e)}\n\nVérifie que ta clé API est correcte."
 
 # En-tête principal
-st.title("📐 Mon Tuteur de Mathématiques")
-st.markdown("### *Ton aide personnalisée pour Secondaire 3* ✨")
+st.title("📐 Mon Tuteur de Math")
+st.markdown("### *Ton aide personnalisée pour Sec 3* ✨")
 
 # Affichage du sujet actuel
 if st.session_state.current_subject:
@@ -204,7 +204,7 @@ st.markdown("---")
 # Afficher l'historique des messages
 for message in st.session_state.messages:
     if message["role"] == "user":
-        st.markdown(f'<div class="user-message">👧 <strong>Toi:</strong><br>{message["content"]}</div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="user-message"><strong>Toi:</strong><br>{message["content"]}</div>', unsafe_allow_html=True)
     else:
         st.markdown(f'<div class="assistant-message">🤖 <strong>Tuteur:</strong><br>{message["content"]}</div>', unsafe_allow_html=True)
 
@@ -286,7 +286,7 @@ elif send_button and not st.session_state.current_subject:
 st.markdown("---")
 st.markdown("""
 <div style='text-align: center; color: #666; font-size: 14px;'>
-    💝 Fait avec amour pour t'aider en math! 💝<br>
+    💝 Fait avec amour par ton papou pour t'aider en math! 💝<br>
     N'hésite pas à poser autant de questions que tu veux: il n'y a pas de mauvaises questions! 🌟
 </div>
 """, unsafe_allow_html=True)
