@@ -210,20 +210,23 @@ for message in st.session_state.messages:
 
 # Zone de saisie
 st.markdown("---")
-col1, col2 = st.columns([5, 1])
 
-with col1:
-    user_input = st.text_area(
-        "Pose ta question ou décris ton problème de math...",
-        height=100,
-        placeholder="Exemple: Comment je résous l'équation 2x + 5 = 13 ?",
-        key="user_input"
-    )
-
-with col2:
-    st.write("")  # Espacement
-    st.write("")  # Espacement
-    send_button = st.button("📤 Envoyer", use_container_width=True, type="primary")
+# Utilise un formulaire pour auto-clear après envoi
+with st.form(key="question_form", clear_on_submit=True):
+    col1, col2 = st.columns([5, 1])
+    
+    with col1:
+        user_input = st.text_area(
+            "Pose ta question ou décris ton problème de math...",
+            height=100,
+            placeholder="Exemple: Comment je résous l'équation 2x + 5 = 13 ?",
+            key="user_input"
+        )
+    
+    with col2:
+        st.write("")  # Espacement
+        st.write("")  # Espacement
+        send_button = st.form_submit_button("📤 Envoyer", use_container_width=True, type="primary")
 
 # Exemples de questions
 with st.expander("💡 Besoin d'inspiration? Clique ici pour voir des exemples de questions"):
