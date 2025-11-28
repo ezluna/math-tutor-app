@@ -287,6 +287,6 @@ st.markdown("---")
 st.markdown("""
 <div style='text-align: center; color: #666; font-size: 14px;'>
     💝 Fait avec amour par ton papou pour t'aider en math! 💝<br>
-    N'hésite pas à poser autant de questions que tu veux: il n'y a pas de mauvaises questions! 🌟
+    N'hésite pas à poser autant de questions que tu veux: il n'y a pas de mauvaises questions!
 </div>
 """, unsafe_allow_html=True)
