@@ -1,6 +1,9 @@
 import streamlit as st
 import openai
 from datetime import datetime
+import base64
+from io import BytesIO
+from PIL import Image
 
 # Configuration de la page - optimisée pour iPad
 st.set_page_config(
@@ -74,6 +77,10 @@ if 'api_key' not in st.session_state:
         st.session_state.api_key = st.secrets["OPENAI_API_KEY"]
     except:
         st.session_state.api_key = None
+if 'uploaded_image' not in st.session_state:
+    st.session_state.uploaded_image = None
+if 'image_base64' not in st.session_state:
+    st.session_state.image_base64 = None
 
 # Sidebar - Configuration
 with st.sidebar:
@@ -145,8 +152,33 @@ with st.sidebar:
         st.session_state.messages = []
         st.rerun()
 
+# Fonction pour encoder l'image en base64
+def encode_image(image_file):
+    try:
+        # Ouvre l'image avec PIL
+        image = Image.open(image_file)
+        
+        # Convertit en RGB si nécessaire
+        if image.mode != 'RGB':
+            image = image.convert('RGB')
+        
+        # Redimensionne si trop grande (max 2000px)
+        max_size = 2000
+        if max(image.size) > max_size:
+            ratio = max_size / max(image.size)
+            new_size = tuple([int(x * ratio) for x in image.size])
+            image = image.resize(new_size, Image.Resampling.LANCZOS)
+        
+        # Convertit en base64
+        buffered = BytesIO()
+        image.save(buffered, format="JPEG", quality=85)
+        return base64.b64encode(buffered.getvalue()).decode('utf-8')
+    except Exception as e:
+        st.error(f"Erreur lors du traitement de l'image: {str(e)}")
+        return None
+
 # Fonction pour appeler OpenAI
-def get_math_response(messages, subject, difficulty, show_steps):
+def get_math_response(messages, subject, difficulty, show_steps, image_base64=None):
     if not st.session_state.api_key:
         return "⚠️ Veuillez entrer votre clé API OpenAI dans la barre latérale."
     
@@ -168,18 +200,41 @@ Directives importantes:
 8. Adapte ton langage au niveau Secondaire 3 (pas trop complexe)
 9. Pour les exposants, utilise la notation: x^2 pour x au carré
 10. Fournis des astuces et raccourcis quand c'est approprié
+11. Si une image de devoir est fournie, analyse-la attentivement et aide l'élève avec les exercices spécifiques
 
 Rappel: Tu aides des élèves du Pensionnat Saint-Nom-de-Marie à Montréal, donc sois familier avec le programme québécois de mathématiques de Secondaire 3."""
 
         client = openai.OpenAI(api_key=st.session_state.api_key)
         
+        # Prépare les messages avec l'image si présente
+        api_messages = [{"role": "system", "content": system_prompt}]
+        
+        for msg in messages:
+            if msg["role"] == "user" and image_base64 and msg == messages[-1]:
+                # Dernier message utilisateur avec image
+                api_messages.append({
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "image_url",
+                            "image_url": {
+                                "url": f"data:image/jpeg;base64,{image_base64}"
+                            }
+                        },
+                        {
+                            "type": "text",
+                            "text": msg["content"]
+                        }
+                    ]
+                })
+            else:
+                api_messages.append(msg)
+        
         response = client.chat.completions.create(
             model="gpt-4o",
-            messages=[
-                {"role": "system", "content": system_prompt}
-            ] + messages,
+            messages=api_messages,
             temperature=0.7,
-            max_tokens=1500
+            max_tokens=2000
         )
         
         return response.choices[0].message.content
@@ -188,8 +243,8 @@ Rappel: Tu aides des élèves du Pensionnat Saint-Nom-de-Marie à Montréal, don
         return f"❌ Erreur: {str(e)}\n\nVérifie que ta clé API est correcte."
 
 # En-tête principal
-st.title("📐 Mon Tuteur de Math")
-st.markdown("### *Ton aide personnalisée pour Sec 3* ✨")
+st.title("📐 Mon Tuteur de Mathématiques")
+st.markdown("### *Ton aide personnalisée pour Secondaire 3* ✨")
 
 # Affichage du sujet actuel
 if st.session_state.current_subject:
@@ -204,7 +259,7 @@ st.markdown("---")
 # Afficher l'historique des messages
 for message in st.session_state.messages:
     if message["role"] == "user":
-        st.markdown(f'<div class="user-message"><strong>Toi:</strong><br>{message["content"]}</div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="user-message">👧 <strong>Toi:</strong><br>{message["content"]}</div>', unsafe_allow_html=True)
     else:
         st.markdown(f'<div class="assistant-message">🤖 <strong>Tuteur:</strong><br>{message["content"]}</div>', unsafe_allow_html=True)
 
@@ -286,7 +341,7 @@ elif send_button and not st.session_state.current_subject:
 st.markdown("---")
 st.markdown("""
 <div style='text-align: center; color: #666; font-size: 14px;'>
-    💝 Fait avec amour par ton papou pour t'aider en math! 💝<br>
-    N'hésite pas à poser autant de questions que tu veux: il n'y a pas de mauvaises questions!
+    💝 Fait avec amour pour t'aider à réussir en math! 💝<br>
+    N'hésite pas à poser autant de questions que tu veux - il n'y a pas de questions bêtes! 🌟
 </div>
 """, unsafe_allow_html=True)
