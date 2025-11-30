@@ -82,76 +82,6 @@ if 'uploaded_image' not in st.session_state:
 if 'image_base64' not in st.session_state:
     st.session_state.image_base64 = None
 
-# Sidebar - Configuration
-with st.sidebar:
-    st.title("⚙️ Configuration")
-    
-    # API Key - affiche seulement si pas dans les secrets
-    if st.session_state.api_key:
-        st.success("✅ Clé API configurée!")
-        if st.button("🔄 Changer la clé API"):
-            st.session_state.api_key = None
-            st.rerun()
-    else:
-        api_key = st.text_input(
-            "Clé API OpenAI",
-            type="password",
-            help="Entre ta clé API OpenAI"
-        )
-        if api_key:
-            st.session_state.api_key = api_key
-    
-    # Configure OpenAI
-    if st.session_state.api_key:
-        openai.api_key = st.session_state.api_key
-    
-    st.divider()
-    
-    # Sélection du sujet
-    st.subheader("📚 Sujets de Mathématiques")
-    
-    subjects = {
-        "Exposants et notation scientifique": {
-            "emoji": "🔢",
-            "description": "Puissances, exposants négatifs, notation scientifique"
-        },
-        "Équations": {
-            "emoji": "⚖️",
-            "description": "Équations du 1er et 2e degré, systèmes d'équations"
-        },
-        "Fonctions": {
-            "emoji": "📈",
-            "description": "Fonctions linéaires, affines, règles de transformation"
-        },
-        "Géométrie": {
-            "emoji": "📐",
-            "description": "Théorème de Pythagore, aires, volumes, triangles semblables"
-        }
-    }
-    
-    for subject, info in subjects.items():
-        if st.button(f"{info['emoji']} {subject}", use_container_width=True):
-            st.session_state.current_subject = subject
-            st.rerun()
-    
-    st.divider()
-    
-    # Options
-    st.subheader("🎯 Préférences")
-    difficulty = st.select_slider(
-        "Niveau de difficulté",
-        options=["Facile", "Moyen", "Difficile"],
-        value="Moyen"
-    )
-    
-    show_steps = st.checkbox("Montrer les étapes détaillées", value=True)
-    
-    st.divider()
-    
-    if st.button("🗑️ Effacer la conversation", use_container_width=True):
-        st.session_state.messages = []
-        st.rerun()
-
 # Fonction pour encoder l'image en base64
 def encode_image(image_file):
     try:
@@ -242,6 +172,78 @@ Rappel: Tu aides des élèves du Pensionnat Saint-Nom-de-Marie à Montréal, don
     except Exception as e:
         return f"❌ Erreur: {str(e)}\n\nVérifie que ta clé API est correcte."
 
+# Sidebar - Configuration
+with st.sidebar:
+    st.title("⚙️ Configuration")
+    
+    # API Key - affiche seulement si pas dans les secrets
+    if st.session_state.api_key:
+        st.success("✅ Clé API configurée!")
+        if st.button("🔄 Changer la clé API"):
+            st.session_state.api_key = None
+            st.rerun()
+    else:
+        api_key = st.text_input(
+            "Clé API OpenAI",
+            type="password",
+            help="Entre ta clé API OpenAI"
+        )
+        if api_key:
+            st.session_state.api_key = api_key
+    
+    # Configure OpenAI
+    if st.session_state.api_key:
+        openai.api_key = st.session_state.api_key
+    
+    st.divider()
+    
+    # Sélection du sujet
+    st.subheader("📚 Sujets de Mathématiques")
+    
+    subjects = {
+        "Exposants et notation scientifique": {
+            "emoji": "🔢",
+            "description": "Puissances, exposants négatifs, notation scientifique"
+        },
+        "Équations": {
+            "emoji": "⚖️",
+            "description": "Équations du 1er et 2e degré, systèmes d'équations"
+        },
+        "Fonctions": {
+            "emoji": "📈",
+            "description": "Fonctions linéaires, affines, règles de transformation"
+        },
+        "Géométrie": {
+            "emoji": "📐",
+            "description": "Théorème de Pythagore, aires, volumes, triangles semblables"
+        }
+    }
+    
+    for subject, info in subjects.items():
+        if st.button(f"{info['emoji']} {subject}", use_container_width=True):
+            st.session_state.current_subject = subject
+            st.rerun()
+    
+    st.divider()
+    
+    # Options
+    st.subheader("🎯 Préférences")
+    difficulty = st.select_slider(
+        "Niveau de difficulté",
+        options=["Facile", "Moyen", "Difficile"],
+        value="Moyen"
+    )
+    
+    show_steps = st.checkbox("Montrer les étapes détaillées", value=True)
+    
+    st.divider()
+    
+    if st.button("🗑️ Effacer la conversation", use_container_width=True):
+        st.session_state.messages = []
+        st.session_state.uploaded_image = None
+        st.session_state.image_base64 = None
+        st.rerun()
+
 # En-tête principal
 st.title("📐 Mon Tuteur de Mathématiques")
 st.markdown("### *Ton aide personnalisée pour Secondaire 3* ✨")
@@ -266,6 +268,29 @@ for message in st.session_state.messages:
 # Zone de saisie
 st.markdown("---")
 
+# Upload d'image
+st.subheader("📸 Télécharge une photo de ton devoir (optionnel)")
+uploaded_file = st.file_uploader(
+    "Prends une photo avec ton iPad ou sélectionne une image",
+    type=['png', 'jpg', 'jpeg'],
+    help="Télécharge une photo de ton exercice, devoir ou problème mathématique"
+)
+
+if uploaded_file is not None:
+    # Affiche l'image uploadée
+    st.session_state.uploaded_image = uploaded_file
+    st.session_state.image_base64 = encode_image(uploaded_file)
+    
+    col_img1, col_img2, col_img3 = st.columns([1, 2, 1])
+    with col_img2:
+        st.image(uploaded_file, caption="📷 Ton devoir", use_container_width=True)
+        if st.button("🗑️ Supprimer l'image", use_container_width=True):
+            st.session_state.uploaded_image = None
+            st.session_state.image_base64 = None
+            st.rerun()
+
+st.markdown("---")
+
 # Utilise un formulaire pour auto-clear après envoi
 with st.form(key="question_form", clear_on_submit=True):
     col1, col2 = st.columns([5, 1])
@@ -274,7 +299,7 @@ with st.form(key="question_form", clear_on_submit=True):
         user_input = st.text_area(
             "Pose ta question ou décris ton problème de math...",
             height=100,
-            placeholder="Exemple: Comment je résous l'équation 2x + 5 = 13 ?",
+            placeholder="Exemple: Comment je résous l'équation 2x + 5 = 13 ? Ou: Peux-tu m'aider avec l'exercice 3 de ma photo?",
             key="user_input"
         )
     
@@ -291,6 +316,7 @@ with st.expander("💡 Besoin d'inspiration? Clique ici pour voir des exemples d
         - Comment j'écris 0.000045 en notation scientifique ?
         - Qu'est-ce qu'un exposant négatif ?
         - Comment je simplifie (3^4)^2 ?
+        - **Avec photo:** Peux-tu m'expliquer l'exercice 5 de ma feuille?
         """)
     elif st.session_state.current_subject == "Équations":
         st.markdown("""
@@ -298,6 +324,7 @@ with st.expander("💡 Besoin d'inspiration? Clique ici pour voir des exemples d
         - Comment je résous une équation du 2e degré ?
         - C'est quoi un système d'équations ?
         - Comment je vérifie ma réponse ?
+        - **Avec photo:** Je ne comprends pas cet exercice, aide-moi!
         """)
     elif st.session_state.current_subject == "Fonctions":
         st.markdown("""
@@ -305,6 +332,7 @@ with st.expander("💡 Besoin d'inspiration? Clique ici pour voir des exemples d
         - Comment je trouve la pente d'une droite ?
         - Comment je trace le graphique de y = 2x + 3 ?
         - Comment les transformations affectent les fonctions ?
+        - **Avec photo:** Explique-moi ce graphique!
         """)
     elif st.session_state.current_subject == "Géométrie":
         st.markdown("""
@@ -312,6 +340,7 @@ with st.expander("💡 Besoin d'inspiration? Clique ici pour voir des exemples d
         - Comment je calcule l'aire d'un triangle ?
         - C'est quoi des triangles semblables ?
         - Comment je trouve le volume d'un cylindre ?
+        - **Avec photo:** Comment je résous ce problème de géométrie?
         """)
 
 # Traitement de l'envoi
@@ -325,11 +354,16 @@ if send_button and user_input and st.session_state.current_subject:
             st.session_state.messages,
             st.session_state.current_subject,
             difficulty,
-            show_steps
+            show_steps,
+            st.session_state.image_base64
         )
     
     # Ajouter la réponse
     st.session_state.messages.append({"role": "assistant", "content": response})
+    
+    # Clear l'image après l'envoi
+    st.session_state.uploaded_image = None
+    st.session_state.image_base64 = None
     
     # Recharger pour afficher les nouveaux messages
     st.rerun()
